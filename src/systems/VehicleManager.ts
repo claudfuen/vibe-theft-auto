@@ -57,6 +57,19 @@ export class VehicleManager {
     }
   }
 
+  triggerFleeFrom(position: Vector3, radius: number) {
+    for (const vehicle of this.vehicles) {
+      const dist = Vector3.Distance(vehicle.mesh.position, position)
+      if (dist < radius) {
+        vehicle.fleeFrom(position)
+      }
+    }
+  }
+
+  getVehicles(): Vehicle[] {
+    return this.vehicles
+  }
+
   getVehicleMeshes(): import('@babylonjs/core/Meshes/mesh').Mesh[] {
     return this.vehicles.map(v => v.mesh)
   }

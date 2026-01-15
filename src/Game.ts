@@ -34,14 +34,22 @@ export class Game {
   private isPaused = false
 
   constructor(private canvas: HTMLCanvasElement) {
+    // Set canvas size to match display resolution
+    this.resizeCanvas()
+
     this.engine = new Engine(canvas, true, {
       preserveDrawingBuffer: true,
       stencil: true,
-      antialias: true
+      antialias: true,
+      adaptToDeviceRatio: true
     })
+  }
 
-    // Fix resolution - use device pixel ratio for sharp rendering
-    this.engine.setHardwareScalingLevel(1 / window.devicePixelRatio)
+  private resizeCanvas() {
+    const dpr = window.devicePixelRatio || 1
+    const rect = this.canvas.getBoundingClientRect()
+    this.canvas.width = Math.floor(rect.width * dpr)
+    this.canvas.height = Math.floor(rect.height * dpr)
   }
 
   async start() {
@@ -79,6 +87,7 @@ export class Game {
       })
 
       window.addEventListener('resize', () => {
+        this.resizeCanvas()
         this.engine.resize()
       })
 
@@ -154,6 +163,7 @@ export class Game {
   private initVehicles() {
     this.vehicleManager = new VehicleManager(this.scene, this.shadowGenerator)
     this.vehicleManager.spawnVehicles(this.city.getVehicleSpawnPoints())
+    this.combatSystem.registerVehicleManager(this.vehicleManager)
   }
 
   private initNPCs() {

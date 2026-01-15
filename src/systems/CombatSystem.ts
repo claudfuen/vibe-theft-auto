@@ -2,12 +2,14 @@ import { Scene } from '@babylonjs/core/scene'
 import { Ray } from '@babylonjs/core/Culling/ray'
 import { Vector3 } from '@babylonjs/core/Maths/math.vector'
 import { Mesh } from '@babylonjs/core/Meshes/mesh'
+import { AbstractMesh } from '@babylonjs/core/Meshes/abstractMesh'
 import { MeshBuilder } from '@babylonjs/core/Meshes/meshBuilder'
 import { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial'
 import { Color3 } from '@babylonjs/core/Maths/math.color'
 
 import { NPCManager } from './NPCManager'
 import { PoliceSystem } from './PoliceSystem'
+import { VehicleManager } from './VehicleManager'
 
 interface WeaponStats {
   damage: number
@@ -23,9 +25,14 @@ interface MuzzleFlash {
 export class CombatSystem {
   private npcManager: NPCManager | null = null
   private policeSystem: PoliceSystem | null = null
+  private vehicleManager: VehicleManager | null = null
   private muzzleFlashes: MuzzleFlash[] = []
   private bulletHoles: Mesh[] = []
   private maxBulletHoles = 50
+
+  // Panic/flee radius for nearby entities
+  private panicRadius = 30
+  private vehicleFleeRadius = 25
 
   private weapons: Record<string, WeaponStats> = {
     'Fists': { damage: 10, range: 2, fireRate: 2 },
@@ -44,6 +51,19 @@ export class CombatSystem {
     this.policeSystem = policeSystem
   }
 
+  registerVehicleManager(vehicleManager: VehicleManager) {
+    this.vehicleManager = vehicleManager
+  }
+
+  // Get root mesh (for hit detection on child meshes)
+  private getRootMesh(mesh: AbstractMesh): AbstractMesh {
+    let current = mesh
+    while (current.parent && current.parent instanceof AbstractMesh) {
+      current = current.parent as AbstractMesh
+    }
+    return current
+  }
+
   shoot(ray: Ray, weaponName: string, shooter: Mesh) {
     const weapon = this.weapons[weaponName]
     if (!weapon) return
@@ -56,18 +76,30 @@ export class CombatSystem {
       this.policeSystem.reportCrime(1, shooter.position)
     }
 
+    // Trigger panic in nearby NPCs
+    this.triggerNearbyPanic(shooter.position)
+
+    // Make nearby vehicles flee
+    this.triggerVehicleFlee(shooter.position)
+
     // Raycast to find hit
     const hit = this.scene.pickWithRay(ray, (mesh) => {
-      return mesh !== shooter && mesh.isPickable && mesh.isEnabled()
+      const rootMesh = this.getRootMesh(mesh)
+      return rootMesh !== shooter && mesh.isPickable && mesh.isEnabled()
     })
 
-    if (hit && hit.hit && hit.pickedPoint) {
+    if (hit && hit.hit && hit.pickedPoint && hit.pickedMesh) {
       const distance = Vector3.Distance(shooter.position, hit.pickedPoint)
 
       if (distance <= weapon.range) {
+        // Get root mesh to check for NPC hit (might hit child mesh)
+        const rootMesh = this.getRootMesh(hit.pickedMesh)
+
         // Check if hit NPC
-        if (this.npcManager && hit.pickedMesh) {
-          const npc = this.npcManager.getNPCs().find(n => n.mesh === hit.pickedMesh)
+        if (this.npcManager) {
+          const npc = this.npcManager.getNPCs().find(n =>
+            n.mesh === hit.pickedMesh || n.mesh === rootMesh
+          )
           if (npc) {
             const killed = npc.takeDamage(weapon.damage)
             this.createBloodSplatter(hit.pickedPoint)
@@ -76,13 +108,31 @@ export class CombatSystem {
             if (killed && this.policeSystem) {
               this.policeSystem.reportCrime(2, shooter.position)
             }
-          } else {
-            // Hit environment
-            this.createBulletHole(hit.pickedPoint, hit.getNormal(true) || Vector3.Up())
+            return // Don't create bullet hole on NPC
           }
         }
+
+        // Hit environment
+        this.createBulletHole(hit.pickedPoint, hit.getNormal(true) || Vector3.Up())
       }
     }
+  }
+
+  private triggerNearbyPanic(shooterPosition: Vector3) {
+    if (!this.npcManager) return
+
+    for (const npc of this.npcManager.getNPCs()) {
+      const dist = Vector3.Distance(npc.mesh.position, shooterPosition)
+      if (dist < this.panicRadius) {
+        npc.flee()
+      }
+    }
+  }
+
+  private triggerVehicleFlee(shooterPosition: Vector3) {
+    if (!this.vehicleManager) return
+
+    this.vehicleManager.triggerFleeFrom(shooterPosition, this.vehicleFleeRadius)
   }
 
   private createMuzzleFlash(position: Vector3) {
