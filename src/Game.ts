@@ -25,6 +25,7 @@ export class Game {
   private npcManager!: NPCManager
   private combatSystem!: CombatSystem
   private shadowGenerator!: ShadowGenerator
+  private isPaused = false
 
   constructor(private canvas: HTMLCanvasElement) {
     this.engine = new Engine(canvas, true, {
@@ -44,13 +45,29 @@ export class Game {
     this.initVehicles()
 
     this.engine.runRenderLoop(() => {
-      this.update()
+      if (!this.isPaused) {
+        this.update()
+      }
       this.scene.render()
     })
 
     window.addEventListener('resize', () => {
       this.engine.resize()
     })
+  }
+
+  pause() {
+    this.isPaused = true
+  }
+
+  resume() {
+    this.isPaused = false
+  }
+
+  dispose() {
+    this.engine.stopRenderLoop()
+    this.scene.dispose()
+    this.engine.dispose()
   }
 
   private async initScene() {
