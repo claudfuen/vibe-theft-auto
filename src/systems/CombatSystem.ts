@@ -91,12 +91,7 @@ export class CombatSystem {
     hole.position.copyFrom(position.add(normal.scale(0.01)))
 
     // Align to surface normal
-    const up = Vector3.Up()
-    if (Math.abs(Vector3.Dot(normal, up)) < 0.99) {
-      const right = Vector3.Cross(up, normal).normalize()
-      const newUp = Vector3.Cross(normal, right)
-      hole.lookAt(position.add(normal))
-    }
+    hole.lookAt(position.add(normal))
 
     const material = new StandardMaterial('holeMat', this.scene)
     material.diffuseColor = new Color3(0.1, 0.1, 0.1)

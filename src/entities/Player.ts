@@ -5,7 +5,8 @@ import { Mesh } from '@babylonjs/core/Meshes/mesh'
 import { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial'
 import { Color3 } from '@babylonjs/core/Maths/math.color'
 import { FreeCamera } from '@babylonjs/core/Cameras/freeCamera'
-import { PhysicsAggregate, PhysicsShapeType } from '@babylonjs/core/Physics/v2/physicsAggregate'
+import { PhysicsAggregate } from '@babylonjs/core/Physics/v2/physicsAggregate'
+import { PhysicsShapeType } from '@babylonjs/core/Physics/v2/IPhysicsEnginePlugin'
 import '@babylonjs/core/Physics/v2/physicsEngineComponent'
 
 import { InputManager } from '../core/InputManager'
@@ -29,7 +30,6 @@ export class Player {
   private yaw = 0
   private pitch = 0.3
 
-  private velocity: Vector3 = Vector3.Zero()
   private isGrounded = true
   private _isInVehicle = false
   private currentVehicle: Vehicle | null = null
@@ -128,7 +128,7 @@ export class Player {
     this.updateUI()
   }
 
-  private updateOnFoot(deltaTime: number) {
+  private updateOnFoot(_deltaTime: number) {
     // Camera rotation from mouse
     if (this.inputManager.isPointerLocked) {
       const mouseDelta = this.inputManager.getMouseDelta()
@@ -185,7 +185,7 @@ export class Player {
     this.camera.setTarget(this.mesh.position.add(new Vector3(0, 1, 0)))
   }
 
-  private updateInVehicle(deltaTime: number) {
+  private updateInVehicle(_deltaTime: number) {
     if (!this.currentVehicle) return
 
     // Camera rotation
@@ -211,7 +211,6 @@ export class Player {
 
     // Camera follows vehicle
     const vehiclePos = this.currentVehicle.mesh.position
-    const vehicleRot = this.currentVehicle.mesh.rotationQuaternion
 
     const cameraOffset = new Vector3(
       -Math.sin(this.yaw) * Math.cos(this.pitch) * this.cameraDistance * 1.5,

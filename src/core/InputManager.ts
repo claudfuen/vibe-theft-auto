@@ -1,4 +1,3 @@
-import { Scene } from '@babylonjs/core/scene'
 import { Vector2 } from '@babylonjs/core/Maths/math.vector'
 
 export class InputManager {
@@ -10,7 +9,7 @@ export class InputManager {
   private mouseDelta: Vector2 = Vector2.Zero()
   private _isPointerLocked: boolean = false
 
-  constructor(private scene: Scene, private canvas: HTMLCanvasElement) {
+  constructor(private canvas: HTMLCanvasElement) {
     this.setupKeyboard()
     this.setupMouse()
   }

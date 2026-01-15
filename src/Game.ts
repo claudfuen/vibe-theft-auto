@@ -81,7 +81,7 @@ export class Game {
   }
 
   private initSystems() {
-    this.inputManager = new InputManager(this.scene, this.canvas)
+    this.inputManager = new InputManager(this.canvas)
     this.combatSystem = new CombatSystem(this.scene)
   }
 

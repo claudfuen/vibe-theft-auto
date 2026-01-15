@@ -4,7 +4,8 @@ import { MeshBuilder } from '@babylonjs/core/Meshes/meshBuilder'
 import { Mesh } from '@babylonjs/core/Meshes/mesh'
 import { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial'
 import { Color3 } from '@babylonjs/core/Maths/math.color'
-import { PhysicsAggregate, PhysicsShapeType } from '@babylonjs/core/Physics/v2/physicsAggregate'
+import { PhysicsAggregate } from '@babylonjs/core/Physics/v2/physicsAggregate'
+import { PhysicsShapeType } from '@babylonjs/core/Physics/v2/IPhysicsEnginePlugin'
 import '@babylonjs/core/Physics/v2/physicsEngineComponent'
 
 type NPCState = 'idle' | 'walking' | 'fleeing'
@@ -118,7 +119,7 @@ export class NPC {
     return dist < 1
   }
 
-  private moveToTarget(speed: number, deltaTime: number) {
+  private moveToTarget(speed: number, _deltaTime: number) {
     if (!this.targetPosition) return
 
     const direction = this.targetPosition.subtract(this.mesh.position)

@@ -5,7 +5,8 @@ import { Mesh } from '@babylonjs/core/Meshes/mesh'
 import { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial'
 import { Color3 } from '@babylonjs/core/Maths/math.color'
 import { ShadowGenerator } from '@babylonjs/core/Lights/Shadows/shadowGenerator'
-import { PhysicsAggregate, PhysicsShapeType } from '@babylonjs/core/Physics/v2/physicsAggregate'
+import { PhysicsAggregate } from '@babylonjs/core/Physics/v2/physicsAggregate'
+import { PhysicsShapeType } from '@babylonjs/core/Physics/v2/IPhysicsEnginePlugin'
 import '@babylonjs/core/Physics/v2/physicsEngineComponent'
 
 export class City {
