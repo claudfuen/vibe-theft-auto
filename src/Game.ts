@@ -7,6 +7,7 @@ import { ShadowGenerator } from '@babylonjs/core/Lights/Shadows/shadowGenerator'
 import { HavokPlugin } from '@babylonjs/core/Physics/v2/Plugins/havokPlugin'
 import HavokPhysics from '@babylonjs/havok'
 import '@babylonjs/core/Physics/physicsEngineComponent'
+import '@babylonjs/core/Lights/Shadows/shadowGeneratorSceneComponent'
 
 import { InputManager } from './core/InputManager'
 import { Player } from './entities/Player'
