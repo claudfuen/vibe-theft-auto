@@ -14,6 +14,7 @@ import { City } from './world/City'
 import { VehicleManager } from './systems/VehicleManager'
 import { NPCManager } from './systems/NPCManager'
 import { CombatSystem } from './systems/CombatSystem'
+import { PoliceSystem } from './systems/PoliceSystem'
 
 export class Game {
   private engine: Engine
@@ -24,6 +25,7 @@ export class Game {
   private vehicleManager!: VehicleManager
   private npcManager!: NPCManager
   private combatSystem!: CombatSystem
+  private policeSystem!: PoliceSystem
   private shadowGenerator!: ShadowGenerator
   private isPaused = false
 
@@ -35,25 +37,48 @@ export class Game {
   }
 
   async start() {
-    await this.initScene()
-    this.initLights()
-    await this.initPhysics()
-    this.initSystems()
-    await this.initWorld()
-    this.initPlayer()
-    this.initNPCs()
-    this.initVehicles()
+    try {
+      console.log('Initializing scene...')
+      await this.initScene()
 
-    this.engine.runRenderLoop(() => {
-      if (!this.isPaused) {
-        this.update()
-      }
-      this.scene.render()
-    })
+      console.log('Initializing lights...')
+      this.initLights()
 
-    window.addEventListener('resize', () => {
-      this.engine.resize()
-    })
+      console.log('Initializing physics...')
+      await this.initPhysics()
+
+      console.log('Initializing systems...')
+      this.initSystems()
+
+      console.log('Initializing world...')
+      await this.initWorld()
+
+      console.log('Initializing player...')
+      this.initPlayer()
+
+      console.log('Initializing NPCs...')
+      this.initNPCs()
+
+      console.log('Initializing vehicles...')
+      this.initVehicles()
+
+      console.log('Starting render loop...')
+      this.engine.runRenderLoop(() => {
+        if (!this.isPaused) {
+          this.update()
+        }
+        this.scene.render()
+      })
+
+      window.addEventListener('resize', () => {
+        this.engine.resize()
+      })
+
+      console.log('Game started successfully!')
+    } catch (error) {
+      console.error('Failed to start game:', error)
+      throw error
+    }
   }
 
   pause() {
@@ -100,6 +125,7 @@ export class Game {
   private initSystems() {
     this.inputManager = new InputManager(this.canvas)
     this.combatSystem = new CombatSystem(this.scene)
+    this.policeSystem = new PoliceSystem(this.scene, this.shadowGenerator)
   }
 
   private async initWorld() {
@@ -142,6 +168,11 @@ export class Game {
     this.vehicleManager.update(deltaTime)
     this.npcManager.update(deltaTime, this.player.mesh.position)
     this.combatSystem.update(deltaTime)
+
+    // Update police system
+    const playerVel = this.player.isInVehicle ? Vector3.Zero() : Vector3.Zero()
+    this.policeSystem.update(deltaTime, this.player.mesh.position, playerVel)
+
     this.inputManager.update()
   }
 }

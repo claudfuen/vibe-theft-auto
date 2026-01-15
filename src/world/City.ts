@@ -14,9 +14,9 @@ export class City {
   private vehicleSpawnPoints: Vector3[] = []
   private npcSpawnPoints: Vector3[] = []
 
-  private gridSize = 5
-  private blockSize = 40
-  private roadWidth = 10
+  private gridSize = 8  // Larger city grid
+  private blockSize = 50  // Bigger blocks
+  private roadWidth = 12  // Wider roads
 
   constructor(private scene: Scene, private shadowGenerator: ShadowGenerator) {}
 
