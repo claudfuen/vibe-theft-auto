@@ -4,6 +4,7 @@ import { ShadowGenerator } from '@babylonjs/core/Lights/Shadows/shadowGenerator'
 
 import { NPC } from '../entities/NPC'
 import { CombatSystem } from './CombatSystem'
+import { CharacterFactory } from '../entities/CharacterFactory'
 
 export class NPCManager {
   private npcs: NPC[] = []
@@ -11,6 +12,7 @@ export class NPCManager {
   private maxNPCs = 30
   private spawnRadius = 80
   private despawnRadius = 120
+  private characterFactory: CharacterFactory | null = null
 
   constructor(
     private scene: Scene,
@@ -18,6 +20,10 @@ export class NPCManager {
     private combatSystem: CombatSystem
   ) {
     this.combatSystem.registerNPCManager(this)
+  }
+
+  setCharacterFactory(factory: CharacterFactory) {
+    this.characterFactory = factory
   }
 
   spawnNPCs(spawnPoints: Vector3[]) {
@@ -31,7 +37,9 @@ export class NPCManager {
   }
 
   private spawnNPC(position: Vector3) {
-    const npc = new NPC(this.scene, position)
+    // Try to get a loaded character model
+    const loadedChar = this.characterFactory?.getRandomCharacterMesh()
+    const npc = new NPC(this.scene, position, loadedChar?.mesh)
     npc.addToShadowGenerator(this.shadowGenerator)
     this.npcs.push(npc)
   }

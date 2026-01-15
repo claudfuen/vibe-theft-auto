@@ -16,6 +16,7 @@ export class Vehicle {
   private physicsAggregate: PhysicsAggregate
   private wheels: Mesh[] = []
   private driver: Player | null = null
+  private externalMesh: Mesh | null = null
 
   // Tuned vehicle parameters
   private enginePower = 8000
@@ -33,15 +34,33 @@ export class Vehicle {
   private isAIDriving = false
   private aiTarget: Vector3 | null = null
 
-  constructor(private scene: Scene, position: Vector3, color: Color3) {
-    this.mesh = this.createVehicleMesh(color)
-    this.mesh.position.copyFrom(position)
+  constructor(private scene: Scene, position: Vector3, color: Color3, externalMesh?: Mesh) {
+    if (externalMesh) {
+      // Use external mesh - create invisible physics box
+      this.externalMesh = externalMesh
+      this.mesh = MeshBuilder.CreateBox('carPhysics', {
+        width: 2.2,
+        height: 1.2,
+        depth: 4.5
+      }, this.scene)
+      this.mesh.visibility = 0
+      // Parent visual mesh to physics mesh
+      this.externalMesh.parent = this.mesh
+      this.externalMesh.position.y = -0.3
+      this.externalMesh.scaling.setAll(1.5) // Scale up the model
+    } else {
+      this.mesh = this.createVehicleMesh(color)
+      this.createWheels()
+    }
+
+    // Spawn car slightly above ground to prevent embedding
+    this.mesh.position.set(position.x, position.y + 1.5, position.z)
     this.mesh.rotationQuaternion = Quaternion.Identity()
 
     this.physicsAggregate = new PhysicsAggregate(
       this.mesh,
       PhysicsShapeType.BOX,
-      { mass: 1000, friction: 0.5, restitution: 0.1 },
+      { mass: 1200, friction: 0.8, restitution: 0.1 },
       scene
     )
 
@@ -49,8 +68,6 @@ export class Vehicle {
     this.physicsAggregate.body.setMassProperties({
       centerOfMass: new Vector3(0, -0.4, 0)
     })
-
-    this.createWheels()
   }
 
   private createVehicleMesh(color: Color3): Mesh {
@@ -244,10 +261,10 @@ export class Vehicle {
       this.physicsAggregate.body.setAngularVelocity(new Vector3(0, steerForce, 0))
     }
 
-    // Apply throttle force
+    // Apply throttle force (physics engine handles time integration)
     if (this.throttleInput !== 0 && speed < this.maxSpeed) {
       const forceMagnitude = this.throttleInput * this.enginePower
-      const force = forward.scale(forceMagnitude * deltaTime)
+      const force = forward.scale(forceMagnitude)
       this.physicsAggregate.body.applyForce(force, this.mesh.position)
     }
 
@@ -256,7 +273,7 @@ export class Vehicle {
       const vel = this.physicsAggregate.body.getLinearVelocity()
       const brakeDir = vel.normalize().scale(-1)
       this.physicsAggregate.body.applyForce(
-        brakeDir.scale(this.brakeForce * deltaTime),
+        brakeDir.scale(this.brakeForce),
         this.mesh.position
       )
     }
@@ -274,14 +291,16 @@ export class Vehicle {
       Quaternion.SlerpToRef(this.mesh.rotationQuaternion, uprightQuat, deltaTime * 5, this.mesh.rotationQuaternion)
     }
 
-    // Animate wheels
-    this.wheels[0].rotation.y = this.currentSteering * 0.4
-    this.wheels[1].rotation.y = this.currentSteering * 0.4
+    // Animate wheels (only if using procedural mesh)
+    if (this.wheels.length > 0) {
+      this.wheels[0].rotation.y = this.currentSteering * 0.4
+      this.wheels[1].rotation.y = this.currentSteering * 0.4
 
-    const wheelRotation = speed * deltaTime * 5
-    this.wheels.forEach(wheel => {
-      wheel.rotation.x += wheelRotation * (this.throttleInput >= 0 ? 1 : -1)
-    })
+      const wheelRotation = speed * deltaTime * 5
+      this.wheels.forEach(wheel => {
+        wheel.rotation.x += wheelRotation * (this.throttleInput >= 0 ? 1 : -1)
+      })
+    }
   }
 
   private updateAIDriving(_deltaTime: number) {

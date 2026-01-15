@@ -179,12 +179,14 @@ export class Game {
 
   private initVehicles() {
     this.vehicleManager = new VehicleManager(this.scene, this.shadowGenerator)
+    this.vehicleManager.setVehicleFactory(this.vehicleFactory)
     this.vehicleManager.spawnVehicles(this.city.getVehicleSpawnPoints())
     this.combatSystem.registerVehicleManager(this.vehicleManager)
   }
 
   private initNPCs() {
     this.npcManager = new NPCManager(this.scene, this.shadowGenerator, this.combatSystem)
+    this.npcManager.setCharacterFactory(this.characterFactory)
     this.npcManager.spawnNPCs(this.city.getNPCSpawnPoints())
   }
 

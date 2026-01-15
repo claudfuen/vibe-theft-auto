@@ -22,9 +22,27 @@ export class NPC {
   private idleTimer = 0
   private walkTimer = 0
 
-  constructor(private scene: Scene, position: Vector3) {
-    this.mesh = this.createNPCMesh()
-    this.mesh.position.copyFrom(position)
+  private externalMesh: Mesh | null = null
+
+  constructor(private scene: Scene, position: Vector3, externalMesh?: Mesh) {
+    // Use external mesh if provided, otherwise create procedural one
+    if (externalMesh) {
+      this.externalMesh = externalMesh
+      // Create invisible physics capsule
+      this.mesh = MeshBuilder.CreateCapsule('npcPhysics', {
+        height: 1.8,
+        radius: 0.35
+      }, this.scene)
+      this.mesh.visibility = 0
+      // Parent the visual mesh to physics mesh
+      this.externalMesh.parent = this.mesh
+      this.externalMesh.position.y = -0.9 // Offset to align feet with ground
+    } else {
+      this.mesh = this.createNPCMesh()
+    }
+
+    // Spawn slightly above ground
+    this.mesh.position.set(position.x, position.y + 1, position.z)
 
     this.physicsAggregate = new PhysicsAggregate(
       this.mesh,
@@ -274,6 +292,11 @@ export class NPC {
   }
 
   private die() {
+    // Dispose external mesh if exists
+    if (this.externalMesh) {
+      this.externalMesh.getChildMeshes().forEach(m => m.dispose())
+      this.externalMesh.dispose()
+    }
     // Dispose all child meshes first
     const children = this.mesh.getChildMeshes()
     for (const child of children) {

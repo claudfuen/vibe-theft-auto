@@ -4,9 +4,11 @@ import { Color3 } from '@babylonjs/core/Maths/math.color'
 import { ShadowGenerator } from '@babylonjs/core/Lights/Shadows/shadowGenerator'
 
 import { Vehicle } from '../entities/Vehicle'
+import { VehicleFactory } from '../entities/VehicleFactory'
 
 export class VehicleManager {
   private vehicles: Vehicle[] = []
+  private vehicleFactory: VehicleFactory | null = null
 
   private carColors: Color3[] = [
     new Color3(0.8, 0.1, 0.1),   // Red
@@ -21,10 +23,15 @@ export class VehicleManager {
 
   constructor(private scene: Scene, private shadowGenerator: ShadowGenerator) {}
 
+  setVehicleFactory(factory: VehicleFactory) {
+    this.vehicleFactory = factory
+  }
+
   spawnVehicles(spawnPoints: Vector3[]) {
     spawnPoints.forEach((point, index) => {
       const color = this.carColors[Math.floor(Math.random() * this.carColors.length)]
-      const vehicle = new Vehicle(this.scene, point, color)
+      const loadedMesh = this.vehicleFactory?.getRandomLoadedMesh()
+      const vehicle = new Vehicle(this.scene, point, color, loadedMesh ?? undefined)
 
       // Rotate some vehicles randomly
       if (index % 3 === 0) {
