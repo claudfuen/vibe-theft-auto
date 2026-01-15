@@ -126,6 +126,9 @@ export class Game {
     this.inputManager = new InputManager(this.canvas)
     this.combatSystem = new CombatSystem(this.scene)
     this.policeSystem = new PoliceSystem(this.scene, this.shadowGenerator)
+
+    // Connect systems
+    this.combatSystem.registerPoliceSystem(this.policeSystem)
   }
 
   private async initWorld() {

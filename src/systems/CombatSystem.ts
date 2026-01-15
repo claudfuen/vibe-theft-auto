@@ -7,6 +7,7 @@ import { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial'
 import { Color3 } from '@babylonjs/core/Maths/math.color'
 
 import { NPCManager } from './NPCManager'
+import { PoliceSystem } from './PoliceSystem'
 
 interface WeaponStats {
   damage: number
@@ -21,6 +22,7 @@ interface MuzzleFlash {
 
 export class CombatSystem {
   private npcManager: NPCManager | null = null
+  private policeSystem: PoliceSystem | null = null
   private muzzleFlashes: MuzzleFlash[] = []
   private bulletHoles: Mesh[] = []
   private maxBulletHoles = 50
@@ -38,12 +40,21 @@ export class CombatSystem {
     this.npcManager = npcManager
   }
 
+  registerPoliceSystem(policeSystem: PoliceSystem) {
+    this.policeSystem = policeSystem
+  }
+
   shoot(ray: Ray, weaponName: string, shooter: Mesh) {
     const weapon = this.weapons[weaponName]
     if (!weapon) return
 
     // Create muzzle flash
     this.createMuzzleFlash(shooter.position.add(new Vector3(0, 1.2, 0)))
+
+    // Shooting is a crime! Report it
+    if (this.policeSystem) {
+      this.policeSystem.reportCrime(1, shooter.position)
+    }
 
     // Raycast to find hit
     const hit = this.scene.pickWithRay(ray, (mesh) => {
@@ -58,8 +69,13 @@ export class CombatSystem {
         if (this.npcManager && hit.pickedMesh) {
           const npc = this.npcManager.getNPCs().find(n => n.mesh === hit.pickedMesh)
           if (npc) {
-            npc.takeDamage(weapon.damage)
+            const killed = npc.takeDamage(weapon.damage)
             this.createBloodSplatter(hit.pickedPoint)
+
+            // Killing an NPC is a more serious crime
+            if (killed && this.policeSystem) {
+              this.policeSystem.reportCrime(2, shooter.position)
+            }
           } else {
             // Hit environment
             this.createBulletHole(hit.pickedPoint, hit.getNormal(true) || Vector3.Up())
