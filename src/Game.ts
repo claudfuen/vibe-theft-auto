@@ -18,6 +18,8 @@ import { NPCManager } from './systems/NPCManager'
 import { CombatSystem } from './systems/CombatSystem'
 import { PoliceSystem } from './systems/PoliceSystem'
 import { Minimap } from './systems/Minimap'
+import { VehicleFactory } from './entities/VehicleFactory'
+import { CharacterFactory } from './entities/CharacterFactory'
 
 export class Game {
   private engine: Engine
@@ -31,6 +33,8 @@ export class Game {
   private policeSystem!: PoliceSystem
   private minimap!: Minimap
   private shadowGenerator!: ShadowGenerator
+  private vehicleFactory!: VehicleFactory
+  private characterFactory!: CharacterFactory
   private isPaused = false
 
   constructor(private canvas: HTMLCanvasElement) {
@@ -65,6 +69,9 @@ export class Game {
 
       console.log('Initializing systems...')
       this.initSystems()
+
+      console.log('Preloading 3D assets...')
+      await this.preloadAssets()
 
       console.log('Initializing world...')
       await this.initWorld()
@@ -144,9 +151,19 @@ export class Game {
     this.combatSystem = new CombatSystem(this.scene)
     this.policeSystem = new PoliceSystem(this.scene, this.shadowGenerator)
     this.minimap = new Minimap()
+    this.vehicleFactory = new VehicleFactory(this.scene)
+    this.characterFactory = new CharacterFactory(this.scene)
 
     // Connect systems
     this.combatSystem.registerPoliceSystem(this.policeSystem)
+  }
+
+  private async preloadAssets() {
+    // Preload 3D models in parallel
+    await Promise.all([
+      this.vehicleFactory.preloadModels(),
+      this.characterFactory.preloadModels()
+    ])
   }
 
   private async initWorld() {
