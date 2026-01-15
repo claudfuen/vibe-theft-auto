@@ -38,22 +38,27 @@ export class Game {
   private isPaused = false
 
   constructor(private canvas: HTMLCanvasElement) {
-    // Set canvas size to match display resolution
-    this.resizeCanvas()
+    // Set canvas to full resolution for crisp rendering
+    const dpr = window.devicePixelRatio || 1
+    this.canvas.width = window.innerWidth * dpr
+    this.canvas.height = window.innerHeight * dpr
 
     this.engine = new Engine(canvas, true, {
       preserveDrawingBuffer: true,
       stencil: true,
       antialias: true,
-      adaptToDeviceRatio: true
+      adaptToDeviceRatio: false // We handle DPR manually
     })
+
+    // Force full resolution rendering
+    this.engine.setHardwareScalingLevel(1 / dpr)
   }
 
   private resizeCanvas() {
     const dpr = window.devicePixelRatio || 1
-    const rect = this.canvas.getBoundingClientRect()
-    this.canvas.width = Math.floor(rect.width * dpr)
-    this.canvas.height = Math.floor(rect.height * dpr)
+    this.canvas.width = window.innerWidth * dpr
+    this.canvas.height = window.innerHeight * dpr
+    this.engine.setHardwareScalingLevel(1 / dpr)
   }
 
   async start() {
