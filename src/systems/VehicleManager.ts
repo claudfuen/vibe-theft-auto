@@ -56,4 +56,8 @@ export class VehicleManager {
       vehicle.update(deltaTime)
     }
   }
+
+  getVehicleMeshes(): import('@babylonjs/core/Meshes/mesh').Mesh[] {
+    return this.vehicles.map(v => v.mesh)
+  }
 }

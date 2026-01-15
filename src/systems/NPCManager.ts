@@ -89,4 +89,8 @@ export class NPCManager {
   getNPCs(): NPC[] {
     return this.npcs
   }
+
+  getNPCMeshes(): import('@babylonjs/core/Meshes/mesh').Mesh[] {
+    return this.npcs.filter(n => n.isAlive()).map(n => n.mesh)
+  }
 }

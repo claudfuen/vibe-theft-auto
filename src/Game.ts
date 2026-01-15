@@ -8,6 +8,7 @@ import { HavokPlugin } from '@babylonjs/core/Physics/v2/Plugins/havokPlugin'
 import HavokPhysics from '@babylonjs/havok'
 import '@babylonjs/core/Physics/physicsEngineComponent'
 import '@babylonjs/core/Lights/Shadows/shadowGeneratorSceneComponent'
+import '@babylonjs/core/Culling/ray'
 
 import { InputManager } from './core/InputManager'
 import { Player } from './entities/Player'
@@ -16,6 +17,7 @@ import { VehicleManager } from './systems/VehicleManager'
 import { NPCManager } from './systems/NPCManager'
 import { CombatSystem } from './systems/CombatSystem'
 import { PoliceSystem } from './systems/PoliceSystem'
+import { Minimap } from './systems/Minimap'
 
 export class Game {
   private engine: Engine
@@ -27,14 +29,19 @@ export class Game {
   private npcManager!: NPCManager
   private combatSystem!: CombatSystem
   private policeSystem!: PoliceSystem
+  private minimap!: Minimap
   private shadowGenerator!: ShadowGenerator
   private isPaused = false
 
   constructor(private canvas: HTMLCanvasElement) {
     this.engine = new Engine(canvas, true, {
       preserveDrawingBuffer: true,
-      stencil: true
+      stencil: true,
+      antialias: true
     })
+
+    // Fix resolution - use device pixel ratio for sharp rendering
+    this.engine.setHardwareScalingLevel(1 / window.devicePixelRatio)
   }
 
   async start() {
@@ -127,6 +134,7 @@ export class Game {
     this.inputManager = new InputManager(this.canvas)
     this.combatSystem = new CombatSystem(this.scene)
     this.policeSystem = new PoliceSystem(this.scene, this.shadowGenerator)
+    this.minimap = new Minimap()
 
     // Connect systems
     this.combatSystem.registerPoliceSystem(this.policeSystem)
@@ -176,6 +184,15 @@ export class Game {
     // Update police system
     const playerVel = this.player.isInVehicle ? Vector3.Zero() : Vector3.Zero()
     this.policeSystem.update(deltaTime, this.player.mesh.position, playerVel)
+
+    // Update minimap
+    this.minimap.update(
+      this.player.mesh.position,
+      this.player.getYaw(),
+      this.vehicleManager.getVehicleMeshes(),
+      this.npcManager.getNPCMeshes(),
+      this.policeSystem.getPoliceMeshes()
+    )
 
     this.inputManager.update()
   }

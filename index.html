@@ -187,17 +187,20 @@
         line-height: 1.6;
       }
 
-      /* Minimap placeholder */
+      /* Minimap */
       #minimap {
         position: absolute;
         bottom: 20px;
         right: 20px;
-        width: 150px;
-        height: 150px;
-        background: rgba(0, 0, 0, 0.6);
-        border: 2px solid rgba(255, 255, 255, 0.3);
+        width: 180px;
+        height: 180px;
         border-radius: 5px;
+        overflow: hidden;
         z-index: 100;
+      }
+      #minimap canvas {
+        width: 100%;
+        height: 100%;
       }
     </style>
   </head>

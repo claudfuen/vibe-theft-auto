@@ -266,12 +266,22 @@ export class City {
   }
 
   getVehicleSpawnPoints(): Vector3[] {
-    // Return subset for initial spawn
-    return this.vehicleSpawnPoints.slice(0, 20)
+    // Sort by distance to center (player start) and return closest
+    const center = Vector3.Zero()
+    const sorted = [...this.vehicleSpawnPoints].sort((a, b) => {
+      return Vector3.Distance(a, center) - Vector3.Distance(b, center)
+    })
+    console.log(`Total vehicle spawn points: ${this.vehicleSpawnPoints.length}, returning closest 30`)
+    return sorted.slice(0, 30)
   }
 
   getNPCSpawnPoints(): Vector3[] {
-    // Return subset for initial spawn
-    return this.npcSpawnPoints.slice(0, 30)
+    // Sort by distance to center (player start) and return closest
+    const center = Vector3.Zero()
+    const sorted = [...this.npcSpawnPoints].sort((a, b) => {
+      return Vector3.Distance(a, center) - Vector3.Distance(b, center)
+    })
+    console.log(`Total NPC spawn points: ${this.npcSpawnPoints.length}, returning closest 50`)
+    return sorted.slice(0, 50)
   }
 }

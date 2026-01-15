@@ -303,4 +303,8 @@ export class PoliceSystem {
   isPlayerWanted(): boolean {
     return this.wantedLevel > 0
   }
+
+  getPoliceMeshes(): import('@babylonjs/core/Meshes/mesh').Mesh[] {
+    return this.policeCars.map(p => p.mesh)
+  }
 }

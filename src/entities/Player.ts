@@ -87,6 +87,10 @@ export class Player {
     return this._isInVehicle
   }
 
+  getYaw(): number {
+    return this.yaw
+  }
+
   enterVehicle(vehicle: Vehicle) {
     this._isInVehicle = true
     this.currentVehicle = vehicle
